@@ -19,6 +19,19 @@ To get started with WanderQuest, follow these steps:
 3. **Connect MetaMask:** Connect your MetaMask wallet to the WanderQuest game interface.
 4. **Start Playing:** Start playing WanderQuest by interacting with the game interface using MetaMask.
 
+## Functions and Actions
+
+- **action(uint a):** This function allows the player to perform various actions in the game. Each action is represented by a unique integer value 'a':
+    - 1: Go in/out - Move in or out of a location.
+    - 2: Go UP - Move up in the game world.
+    - 3: Go DOWN - Move down in the game world.
+    - 4: Go RIGHT - Move right in the game world.
+    - 5: Go LEFT - Move left in the game world.
+    - 6: Eat - Consume food to replenish energy.
+    - 7: Buy Food - Purchase food from nearby shops.
+    - 8: Enter Portal - Enter the portal to progress in the game.
+    - 9: Mine - Mine for gold in nearby mines.
+
 ## Contributing
 
 Contributions to WanderQuest are welcome! If you have any ideas for improvements or new features, feel free to open an issue or submit a pull request.
