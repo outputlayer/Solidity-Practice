@@ -2,16 +2,15 @@
 
 pragma solidity >=0.8.25 < 0.9.0;
 
-
-contract THEGUY {
+contract WanderQuest {
 
     struct Player {
-        address user;
         Position position;
         string doing;
         uint xp;
         uint gold;
         uint food;
+        uint killed;
         bool alive;
         bool winner;
     }
@@ -24,18 +23,18 @@ contract THEGUY {
         bool alive;
     }
 
-    struct Shop{
+    struct Shop {
         string name;
         Position position;
     }
 
-    struct Mine{
+    struct Mine {
         string name;
         Position position;
         uint gold;
     }
 
-    struct Portal{
+    struct Portal {
         string name;
         Position position;
     }
@@ -45,32 +44,29 @@ contract THEGUY {
         int y;
     }
 
- 
-
-    mapping(uint => string) public act;
-    mapping(uint => Mob) public mobs; 
-    mapping(uint => Shop) public shops; 
-    mapping(uint => Mine) public mines; 
+    mapping(uint => string) public Action_helper;
+    mapping(uint => Mob)  mobs; 
+    mapping(uint => Shop) shops; 
+    mapping(uint => Mine) mines; 
     mapping(uint => Position) locations;
 
     Portal portal; 
     Player public player;
-    uint private nonce = 0;
-    uint public started;
-    uint public num;
+    uint nonce = 0;
+    uint num;
 
     constructor() {
-    player = Player(msg.sender, Position(0, 0), "Nothing", 100, 0, 0, true, false);
+    player = Player(Position(0, 0), "Nothing", 100, 0, 0, 0, true, false);
     
-    act[0] = "Nothing";
-    act[1] = "Getting in/out";
-    act[2] = "UP";
-    act[3] = "DOWN";
-    act[4] = "RIGHT";
-    act[5] = "LEFT";
-    act[6] = "Eating";
-    act[7] = "Buying Food";
-    act[8] = "Winning Game";
+   Action_helper[1] = "Go in/out";
+   Action_helper[2] = "Go UP";
+   Action_helper[3] = "Go DOWN";
+   Action_helper[4] = "Go RIGHT";
+   Action_helper[5] = "Go LEFT";
+   Action_helper[6] = "Eat";
+   Action_helper[7] = "Buy Food";
+   Action_helper[8] = "Enter Portal";
+   Action_helper[9] = "Mine";
 
     for (uint i = 0; i < 10; i++) {
         mobs[i] = Mob("Billy", generateRandomPosition(), 5, 10, true);
@@ -88,38 +84,44 @@ contract THEGUY {
     portal = Portal("PORTAL", generateRandomPosition());
 }
 
-    function action(uint a) public  {
+    function Action(uint a) public  {
+        if (player.xp < 0) {
+            player.alive = false;
+        }
         require(player.alive, "Player must be alive to move.");
         require(player.winner == false, "You won this game!");
 
         if (a == 1){
-        require(keccak256(bytes(player.doing)) == keccak256(bytes("Found mine!")) || keccak256(bytes(player.doing)) == keccak256(bytes("minning")), "Player must near to mine.");
-        require(player.xp >= 46, "Get some food!");
-        mining();
+            require(keccak256(bytes(player.doing)) == keccak256(bytes("Found mine!")) || keccak256(bytes(player.doing)) == keccak256(bytes("Staying in mine")), "Player must be near a mine.");
+            if (keccak256(bytes(player.doing)) == keccak256(bytes("Found mine!"))) {
+            player.doing = "Staying in mine";}
+            else  {
+            player.doing = "Found mine!";}
+            
         }
         if (a == 2){
-            require(keccak256(bytes(player.doing)) != keccak256(bytes("minning")), "Player must get out from mine.");
+            require(keccak256(bytes(player.doing)) != keccak256(bytes("Staying in mine")), "Player must get out from mine.");
             player.position.y += 1;
             player.doing = "Walking";
             checkPosition(player.position.x, player.position.y);
             num = 2;
         }
         if (a == 3){
-            require(keccak256(bytes(player.doing)) != keccak256(bytes("minning")), "Player must get out from mine.");
+            require(keccak256(bytes(player.doing)) != keccak256(bytes("Staying in mine")), "Player must get out from mine.");
             player.position.y -= 1;
             player.doing = "Walking";
             checkPosition(player.position.x, player.position.y);
             num = 2;
         }
         if (a == 4){
-            require(keccak256(bytes(player.doing)) != keccak256(bytes("minning")), "Player must get out from mine.");
+            require(keccak256(bytes(player.doing)) != keccak256(bytes("Staying in mine")), "Player must get out from mine.");
             player.position.x += 1;
             player.doing = "Walking";
             checkPosition(player.position.x, player.position.y);
             num = 2;
         }
         if (a == 5){
-            require(keccak256(bytes(player.doing)) != keccak256(bytes("minning")), "Player must get out from mine.");
+            require(keccak256(bytes(player.doing)) != keccak256(bytes("Staying in mine")), "Player must get out from mine.");
             player.position.x -= 1;
             player.doing = "Walking";
             checkPosition(player.position.x, player.position.y);
@@ -129,21 +131,30 @@ contract THEGUY {
             require(player.food > 0, "Player must have food.");
             player.food -= 1;
             player.xp = 100;
-            player.doing = act[6];
+            player.doing = Action_helper[6];
         }
         if (a == 7){
-            require(keccak256(bytes(player.doing)) == keccak256(bytes("Staying near to The SHOP!")), "Player must near to shop.");
+            require(keccak256(bytes(player.doing)) == keccak256(bytes("Staying near The SHOP!")), "Player must be near a shop.");
             require(player.gold >= 10, "Not enough coins!");
             player.food += 1;
             player.gold -=10;
         }
         if (a == 8){
-            require(keccak256(bytes(player.doing)) == keccak256(bytes("Staying near to The PORTAL!!!")), "You not found Portal yet");
+            require(keccak256(bytes(player.doing)) == keccak256(bytes("Staying near The PORTAL!!!")), "You haven't found the portal yet.");
             player.winner = true;
-            player.doing = "Player won this fucking game!";
+            player.doing = "Player won this game!";
         } 
-        if (a > 8){
-            revert("Unxpected Action Please check act! " );
+
+        if (a == 9) {
+            require(keccak256(bytes(player.doing)) == keccak256(bytes("Staying in mine")), "Player must be in a mine.");
+            require(mines[num].gold > 0, "This mine doesn't have enough gold, find a new one!");
+            mines[num].gold -= 1;
+            player.gold += 1;
+            player.xp -= 1;
+        }
+
+        if (a > 9){
+            revert("Unexpected Action, please check the action!");
         }
         
         }
@@ -156,6 +167,7 @@ contract THEGUY {
                      player.doing = "Fighting";
                      player.xp -= 5;
                      player.gold += 10;
+                     player.killed += 1;
                      mobs[i].alive = false;
                 }
                  
@@ -171,12 +183,12 @@ contract THEGUY {
         }
 
         if (portal.position.x == x && portal.position.y == y){
-            player.doing = "Staying near to The PORTAL!!!";
+            player.doing = "Staying near The PORTAL!!!";
         }
 
         for (uint i = 0; i < 2; i++) {
             if (shops[i].position.x == x && shops[i].position.y == y) {
-                 player.doing = "Staying near to The SHOP!";
+                 player.doing = "Staying near The SHOP!";
                        
         }
 
@@ -184,31 +196,6 @@ contract THEGUY {
     }
 
     }
-
-
-function mining() private {
-    if (keccak256(bytes(player.doing)) == keccak256(bytes("Found mine!"))) {
-       uint started = block.timestamp;
-    }
-    if (keccak256(bytes(player.doing)) == keccak256(bytes("mining"))) {
-        uint256 elapsedTime = block.timestamp - started;
-        uint256 miningTime = 150; 
-
-        if (elapsedTime >= miningTime) {
-            player.gold += 50;
-            player.xp -= 45;
-            mines[num].gold = 0;
-        } else {
-            player.gold += 50 * elapsedTime / miningTime;
-            player.xp -= 50 * elapsedTime / miningTime;
-            mines[num].gold -= 50 * elapsedTime / miningTime;
-        }
-    }
-    player.doing = "minning";
-}
-
-
-
 
 function generateRandomPosition() private returns (Position memory) {
     bytes32 hash = keccak256(abi.encodePacked(nonce));
