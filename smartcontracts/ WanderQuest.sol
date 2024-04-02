@@ -197,6 +197,16 @@ contract WanderQuest {
 
     }
 
+
+
+
+
+
+
+
+
+// This part was done with AI 
+
 function generateRandomPosition() private returns (Position memory) {
     bytes32 hash = keccak256(abi.encodePacked(nonce));
     uint randomNumber = uint(hash) % 8; // Get a random number between 0 and 7
