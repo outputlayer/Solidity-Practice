@@ -1,4 +1,4 @@
-# Golden Rain - ERC20 Token Shower
+# Golden Rain - ERC20 Token DROP
 
 This smart contract, named "Golden Rain," facilitates sending ERC20 transactions (custom token) through L0 in a single transaction to the Optimism and Base networks randomly. The contract is designed to distribute ERC20 tokens in a playful manner, and it's deployed on Arbitrum.
 
